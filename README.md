@@ -15,7 +15,12 @@ $ docker run -d -p 8080:8080 -e CACHE_TTL=3600 commudle/prerender:latest
 
 ```bash
 $ sh prod.sh
-$ docker build -t commudle/prerender:latest .
+#For Mac
+$ docker build -t commudle/prerender:latest . --platform linux/amd64
+
+#For Ubunutu
+$ docker build -t commudle/prerender:latest . 
+
 $ docker tag commudle/prerender:latest commudle/prerender:latest
 $ docker push commudle/prerender:latest
 ```
