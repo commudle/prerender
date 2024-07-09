@@ -22,37 +22,58 @@ describe('Prerender', function () {
     });
 
     it('should return the correct URL for #! URLs without query strings', function () {
-      var url = util.getUrl('http://www.example.com/?_escaped_fragment_=/user/1');
+      var url = util.getUrl(
+        'http://www.example.com/?_escaped_fragment_=/user/1',
+      );
 
       assert.equal(url, 'http://www.example.com/#!/user/1');
     });
 
     it('should return the correct URL for #! URLs with query strings', function () {
-      var url = util.getUrl('http://www.example.com/?_escaped_fragment_=/user/1&param1=yes&param2=no');
+      var url = util.getUrl(
+        'http://www.example.com/?_escaped_fragment_=/user/1&param1=yes&param2=no',
+      );
 
-      assert.equal(url, 'http://www.example.com/?param1=yes&param2=no#!/user/1');
+      assert.equal(
+        url,
+        'http://www.example.com/?param1=yes&param2=no#!/user/1',
+      );
     });
 
     it('should return the correct URL for #! URLs if query string is before hash', function () {
-      var url = util.getUrl('http://www.example.com/?param1=yes&param2=no&_escaped_fragment_=/user/1');
+      var url = util.getUrl(
+        'http://www.example.com/?param1=yes&param2=no&_escaped_fragment_=/user/1',
+      );
 
-      assert.equal(url, 'http://www.example.com/?param1=yes&param2=no#!/user/1');
+      assert.equal(
+        url,
+        'http://www.example.com/?param1=yes&param2=no#!/user/1',
+      );
     });
 
     it('should return the correct URL for #! URLs that are encoded with another ?', function () {
-      var url = util.getUrl('http://www.example.com/?_escaped_fragment_=%2Fuser%2F1%3Fparam1%3Dyes%26param2%3Dno');
+      var url = util.getUrl(
+        'http://www.example.com/?_escaped_fragment_=%2Fuser%2F1%3Fparam1%3Dyes%26param2%3Dno',
+      );
 
-      assert.equal(url, 'http://www.example.com/?param1=yes&param2=no#!/user/1');
+      assert.equal(
+        url,
+        'http://www.example.com/?param1=yes&param2=no#!/user/1',
+      );
     });
 
     it('should return the correct URL for html5 push state URLs', function () {
-      var url = util.getUrl('http://www.example.com/user/1?_escaped_fragment_=');
+      var url = util.getUrl(
+        'http://www.example.com/user/1?_escaped_fragment_=',
+      );
 
       assert.equal(url, 'http://www.example.com/user/1');
     });
 
     it('should return the correct URL for html5 push state URLs with query strings', function () {
-      var url = util.getUrl('http://www.example.com/user/1?param1=yes&param2=no&_escaped_fragment_=');
+      var url = util.getUrl(
+        'http://www.example.com/user/1?param1=yes&param2=no&_escaped_fragment_=',
+      );
 
       assert.equal(url, 'http://www.example.com/user/1?param1=yes&param2=no');
     });
@@ -64,13 +85,17 @@ describe('Prerender', function () {
     });
 
     it('should encode # correctly in URLs that do not use the #!', function () {
-      var url = util.getUrl('http://www.example.com/productNumber=123%23456?_escaped_fragment_=');
+      var url = util.getUrl(
+        'http://www.example.com/productNumber=123%23456?_escaped_fragment_=',
+      );
 
       assert.equal(url, 'http://www.example.com/productNumber=123%23456');
     });
 
     it('should not encode non-english characters', function () {
-      var url = util.getUrl('http://www.example.com/كاليفورنيا?_escaped_fragment_=');
+      var url = util.getUrl(
+        'http://www.example.com/كاليفورنيا?_escaped_fragment_=',
+      );
 
       assert.equal(url, 'http://www.example.com/كاليفورنيا');
     });

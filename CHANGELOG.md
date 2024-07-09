@@ -3,6 +3,47 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+## 5.21.2 - 2024-06-28
+
+### Changed
+
+- Add `x-prerender-504-reason` header to response
+
+## 5.21.1 - 2024-05-06
+
+### Changed
+
+- Add `server` object to `connectedToBrowser` event
+
+## 5.21.0 - 2024-05-06
+
+### Changed
+
+- Make `BROWSER_TRY_RESTART_PERIOD` configurable in the server options
+
+## 5.20.4 - 2024-04-18
+
+### Changed
+
+- Fix `extraChromeFlags` option: `TypeError: Assignment to constant variable.`
+
+## 5.20.3 - 2024-04-17
+
+### Changed
+
+- Add `proxyServer` option to allow for a proxy server to be used by Headless Chrome
+- Add `extraChromeFlags` option to add additional Chrome flags without overriding the default flags
+
+## 5.20.2 - 2023-03-01
+
+- Add `x-prerender-render-id` and `x-prerender-render-at` meta tags to header
+
+## 5.20.1 - 2022-11-30
+
+### Changed
+
+- Log error if Page.stopLoading fails
+
 ## 5.20.0 - 2022-05-06
 
 - If a request made during rendering gets a 5XX response the render process will be marked as dirty

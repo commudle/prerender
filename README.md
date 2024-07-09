@@ -11,15 +11,16 @@ $ docker build -t commudle/prerender:latest .
 $ docker run -d -p 8080:8080 -e CACHE_TTL=3600 commudle/prerender:latest
 ```
 
-## Production
+### Production
 
 ```bash
 $ sh prod.sh
-#For Mac
+
+# For Mac
 $ docker build -t commudle/prerender:latest . --platform linux/amd64
 
-#For Ubunutu
-$ docker build -t commudle/prerender:latest . 
+# For Ubunutu
+$ docker build -t commudle/prerender:latest .
 
 $ docker tag commudle/prerender:latest commudle/prerender:latest
 $ docker push commudle/prerender:latest
@@ -490,7 +491,7 @@ POST http://localhost:3000/render
 }
 ```
 
-Check out our [full documentation](https://prerender.com/documentation)
+Check out our [full documentation](https://docs.prerender.io)
 
 ## License
 
