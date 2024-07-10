@@ -19,7 +19,7 @@ $ sh prod.sh
 # For Mac
 $ docker build -t commudle/prerender:latest . --platform linux/amd64
 
-# For Ubunutu
+# For Ubuntu
 $ docker build -t commudle/prerender:latest .
 
 $ docker tag commudle/prerender:latest commudle/prerender:latest
