@@ -354,6 +354,23 @@ You can add the blacklisted domains to the plugin itself, or use the `BLACKLISTE
 
 `export BLACKLISTED_DOMAINS=yahoo.com,www.google.com`
 
+### blockResources (enhanced)
+
+Blocks network requests for common tracking/analytics/ads domains and (optionally) fonts and images to speed up prerendering. The default behavior now focuses on third-party analytics and fonts only; large images are NOT blocked by default to avoid delaying the perceived completeness of content and to reduce excessive in‑flight duplication.
+
+Environment variables:
+
+- `BLOCK_RESOURCES_BLOCK_IMAGES` (true|false, default: false) – when true, blocks common image extensions (.png, .jpg, .jpeg, .gif, .svg, .ico, .tiff, .pdf used as embeds). Use with caution; blocking all images can cause many frameworks to retry aggressively.
+- `BLOCK_RESOURCES_BLOCK_FONTS` (true|false, default: true) – set to `false` to allow font files to load (fonts can be large; blocking lets pages fall back to system fonts, usually acceptable for bots).
+- `BLOCK_RESOURCES_ALLOW_DOMAINS` – comma‑separated substrings that should always be allowed even if they otherwise match the blocked list. Example: `BLOCK_RESOURCES_ALLOW_DOMAINS=cdn.mycompany.com,images.mycompany.com`.
+- `BLOCK_RESOURCES_LOG` (true|false, default: false) – verbose logging of blocked (and some allowed) requests by the plugin.
+
+Notes:
+
+1. If you enable image blocking and notice very long prerender times with many repeated failed requests, consider disabling it or allowlisting key hostnames via `BLOCK_RESOURCES_ALLOW_DOMAINS`.
+2. The plugin now has defensive guards to avoid crashing if the underlying Chrome WebSocket is closing (`continueInterceptedRequest` errors are caught and suppressed when shutting down a tab).
+3. Fonts remain blocked unless explicitly disabled to keep HTML first paint fast for crawlers (they ignore styling nuances).
+
 ### in-memory-cache
 
 Caches pages in memory. Available at [prerender-memory-cache](https://github.com/prerender/prerender-memory-cache)
@@ -492,6 +509,106 @@ POST http://localhost:3000/render
 ```
 
 Check out our [full documentation](https://docs.prerender.io)
+
+## Browser Pool (Commudle Fork Enhancements)
+
+This fork includes a dynamic browser pool with resilience & autoscaling features to reduce 504 timeouts under load.
+
+### Core Options
+
+| Option                | Default | Description                                           |
+| --------------------- | ------- | ----------------------------------------------------- |
+| `minConnections`      | 1       | Minimum warm Chrome instances.                        |
+| `maxConnections`      | 5       | Upper bound of concurrently spawned Chrome instances. |
+| `maxIdleTime`         | 300000  | Recycle an idle browser after this idle time (ms).    |
+| `restartAfterUses`    | 100     | Recycle browser after N tab renders.                  |
+| `healthCheckInterval` | 60000   | Interval for pool health sweep (ms).                  |
+
+### Advanced Scaling & Resilience
+
+| Option / Env Var                                | Default | Behavior                                                         |
+| ----------------------------------------------- | ------- | ---------------------------------------------------------------- |
+| `connectionTimeout` / `POOL_ACQUIRE_TIMEOUT_MS` | 30000   | Max wait for a free browser before failing acquisition.          |
+| `scaleUpQueuedThreshold`                        | 3       | Scale up if queued requests >= threshold and capacity available. |
+| `scaleUpUtilizationThreshold`                   | 0.8     | Scale up if busy/total exceeds threshold and queue not empty.    |
+| `scaleDownIdleTime`                             | 120000  | Earlier idle recycle threshold beyond minConnections.            |
+| `maxConnectionAge`                              | 1800000 | Recycle browsers older than this age (ms).                       |
+| `maxConsecutiveFailures`                        | 3       | Recycle browser after consecutive failures.                      |
+
+### Timeout Mapping
+
+If a tab cannot acquire a browser within `connectionTimeout`, the server now returns:
+
+- HTTP 503 Service Unavailable
+- `Retry-After: 3`
+- Header `x-prerender-504-reason: browser_pool_acquire_timeout`
+
+This prevents long stalls and encourages caller retry/backoff instead of hitting a hard 504.
+
+### Monitoring
+
+`GET /pool-status` returns JSON with:
+
+```
+{
+    status: "ok",
+    pool: {
+        totalConnections,
+        busyConnections,
+        availableConnections,
+        queuedRequests,
+        utilization, // busy / total
+        metrics: {
+            acquireTimeouts,
+            totalAcquireRequests,
+            totalQueuedRequests,
+            peakQueueLength,
+            createdConnections,
+            destroyedConnections,
+            recycledConnections,
+            scaleUpEvents,
+            scaleUpFailures,
+            scaleDownRecycles,
+            healthCheckRuns,
+            consecutiveAcquireErrors,
+            queueLength,
+            options: { max, min }
+        },
+        connections: [ { id, useCount, isHealthy, isBusy, activeTabs, createdAt, lastUsed } ]
+    },
+    timestamp
+}
+```
+
+### Operational Guidance
+
+- Increase `maxConnections` gradually; each headless Chrome consumes memory.
+- Tune `scaleUpQueuedThreshold` based on p95 burstiness: start at 2–3.
+- Use external autoscaling (containers/instances) in tandem with pool scaling for heavy spikes.
+- Monitor acquisition failures (count 503 with reason header) — sustained growth suggests raising capacity.
+
+### Example Configuration
+
+```js
+const server = prerender({
+  minConnections: 2,
+  maxConnections: 10,
+  connectionTimeout: 15000,
+  scaleUpQueuedThreshold: 2,
+  scaleUpUtilizationThreshold: 0.75,
+  scaleDownIdleTime: 60000,
+});
+```
+
+Environment example:
+
+```bash
+export POOL_ACQUIRE_TIMEOUT_MS=15000
+export POOL_MIN=2
+export POOL_MAX=10
+```
+
+These map internally to the options above (set explicitly if env integration not yet wired for all keys).
 
 ## License
 
